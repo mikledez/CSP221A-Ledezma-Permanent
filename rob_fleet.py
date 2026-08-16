@@ -142,3 +142,55 @@ def run_task_safely(robot, **kwargs):
 # print(robot1.tasks)
 # print(robot2.tasks)
 
+#---------------------TESTING------------------------
+
+# Create robots
+foot_robot = FootRobot("F1", battery=100, massage_strength=8)
+kitchen_robot = KitchenRobot("C1", battery=100, cooking_speed=7)
+
+# Test __str__ and __repr__
+print(foot_robot)
+print(repr(foot_robot))
+
+print(kitchen_robot)
+print(repr(kitchen_robot))
+
+# Test battery clamping
+foot_robot.battery = 150
+print(foot_robot.battery)  
+
+foot_robot.battery = -20
+print(foot_robot.battery)
+
+foot_robot.battery = 100
+
+# population
+print(Robot.population)
+
+# fleet report
+fleet = [foot_robot, kitchen_robot]
+fleet_report(fleet)
+
+#  FootRobot task
+run_task_safely(foot_robot, massage_strength=8)
+
+# KitchenRobot task
+run_task_safely(kitchen_robot, cooking_speed=7)
+
+# insufficient battery
+foot_robot.battery = 5
+run_task_safely(foot_robot, massage_strength=8)
+
+# config
+config = {
+    "name": "ConfigChef",
+    "battery": 50
+}
+
+config_robot = KitchenRobot.from_config(config)
+
+print(config_robot)
+print(repr(config_robot))
+
+print(KitchenRobot.perform_task.__name__)
+print(KitchenRobot.perform_task.__doc__)
