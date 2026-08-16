@@ -1,13 +1,19 @@
-class Robot:
+from abc import ABC, abstractmethod
+
+class Robot(ABC):
+    manufacturer = "ChocoStarfish"
+    population = 0
+
     def __init__(self, name, battery=100):
         self.name = name
         self.battery = battery
-        self.manufacturer = "ChocoStarfish"
-        self.population = 1
+        Robot.population += 1
 
     def __str__(self):
         return f"{self.name} ({self.battery}% battery)"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name={self.name!r}, (battery={self.battery!r}, manufacturer={self.manufacturer!r})"
 
     def _clamp(self, value): 
         return max(0, min(100, value))
@@ -20,32 +26,33 @@ class Robot:
     def battery(self, value):
         self._battery = self._clamp(value)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}(battery={self.battery!r}, manufacturer={self.manufacturer!r})"
 
     def use_battery(self, amount):
         self.battery -= amount
-        if self.battery < 0:
-            self.battery = 0
-        
+
+    @abstractmethod
+    def perform_task(self):
+        pass
         
 class FootRobot(Robot):
-    def __init__(self, name, battery=100, massage_strength=10):
+    def __init__(self, name, battery=100):
         super().__init__(name, battery)
-        self.massage_strength = massage_strength
     
-    def massage_toes(self, strength):
-        self.massage_strength = strength
+    def perform_task(self, massage_strength=10): 
+        self.massage_strength = massage_strength
         self.use_battery(10)
         return f"Touching Toes... at {self.massage_strength}/10 massage strength"
         
 
 class KitchenRobot(Robot):
-    def __init__(self, name, battery=100, cooking_speed=10):
-        super().__init__(name, battery, cooking_speed)
-        self.cooking_speed = 0
+    def __init__(self, name, battery=100):
+        super().__init__(name, battery)
 
-    def cook_food(self, cooking_speed):
+    def perform_task(self, cooking_speed=10):
         self.cooking_speed = cooking_speed
         self.use_battery(15)
         return f"Cooking Fod.... at {self.cooking_speed}/10 cooking speed"
+
+def fleet_report(robot):
+    for robot in robots:
+        print(str(robot))
