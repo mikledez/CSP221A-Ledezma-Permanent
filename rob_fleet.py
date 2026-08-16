@@ -1,15 +1,31 @@
 from abc import ABC, abstractmethod
 import logging
+from functools import wraps
 
+logging.basicConfig(level=logging.INFO)
+
+
+#--------------------------------------------------------------------------------------------
 class InsufficientBatteryError(Exception):
     def __init__(self, name, required, available):
-        self.namae = name
+        self.name = name
         self.required = required
         self.available = available
         
         super().__init__(
             f"{name} needs {required}% battery but currently only has {available}%"
         )
+
+def log_action(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logging.info(f"Starting {func.__name__}")
+        result = func(*args, **kwargs)
+        logging.info(f"Finished {func.__name__}")
+        return result
+    return wrapper
+
+#----------------------------------------------------------------------------------
 class Robot(ABC):
     manufacturer = "ChocoStarfish"
     population = 0
@@ -23,7 +39,7 @@ class Robot(ABC):
         return f"{self.name} ({self.battery}% battery)"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(name={self.name!r}, (battery={self.battery!r}, manufacturer={self.manufacturer!r})"
+        return f"{self.__class__.__name__}(name={self.name!r}, battery={self.battery!r}, manufacturer={self.manufacturer!r})"
 
     def _clamp(self, value): 
         return max(0, min(100, value))
@@ -49,26 +65,33 @@ class Robot(ABC):
     @abstractmethod
     def perform_task(self):
         pass
-        
-class FootRobot(Robot):
-    def __init__(self, name, battery=100):
-        super().__init__(name, battery)
     
-    def perform_task(self, massage_strength=10): 
+    @classmethod
+    def from_config(cls, config_dict):
+        return cls(config_dict["name"], config_dict.get("battery", 100))
+        
+#-----------------------------------------------------------------------------------------
+class FootRobot(Robot):
+    def __init__(self, name, battery=100, massage_strength=10):
+        super().__init__(name, battery)
         self.massage_strength = massage_strength
+    
+    def perform_task(self, massage_strength): 
         self.use_battery(10)
         return f"Touching Toes... at {self.massage_strength}/10 massage strength"
         
-
+#------------------------------------------------------------------------------------------
 class KitchenRobot(Robot):
-    def __init__(self, name, battery=100):
+    def __init__(self, name, battery=100, cooking_speed=10):
         super().__init__(name, battery)
-
-    def perform_task(self, cooking_speed=10):
         self.cooking_speed = cooking_speed
+
+    @log_action
+    def perform_task(self, cooking_speed):
         self.use_battery(15)
         return f"Cooking Fod.... at {self.cooking_speed}/10 cooking speed"
 
+#---------------------------------------------------------------------------------------------
 def fleet_report(robots):
     for robot in robots:
         print(str(robot))
@@ -85,3 +108,37 @@ def run_task_safely(robot, **kwargs):
 
     finally:
         print(f"{robot.name} has {robot.battery}% battery remaining.")
+
+#---------------------Mutable Class Attribute----------------------------------------------------
+#bad class
+# class RobotBug:
+#     colors = []
+#
+#     def add_color(self, color):
+#         self.colors.append(color)
+#
+# robot1 = RobotBug()
+# robot2 = RobotBug()
+#
+# robot1.add_task("Massage toes")
+#
+# print(robot1.tasks)
+# print(robot2.tasks)
+
+#good class----------------------------------------------------
+
+# class RobotFix:
+#     def __init__(self):
+#         self.colors = []
+#
+#     def add_color(self, color):
+#         self.colors.append(color)
+#
+# robot1 = RobotFix()
+# robot2 = RobotFix()
+#
+# robot1.add_task("Massage toes")
+#
+# print(robot1.tasks)
+# print(robot2.tasks)
+
