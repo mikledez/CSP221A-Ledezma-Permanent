@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-
+import logging
 
 class InsufficientBatteryError(Exception):
-    def __init__(self, name. required, available):
+    def __init__(self, name, required, available):
         self.namae = name
         self.required = required
         self.available = available
@@ -69,6 +69,19 @@ class KitchenRobot(Robot):
         self.use_battery(15)
         return f"Cooking Fod.... at {self.cooking_speed}/10 cooking speed"
 
-def fleet_report(robot):
+def fleet_report(robots):
     for robot in robots:
         print(str(robot))
+
+def run_task_safely(robot, **kwargs):
+    try:
+        result = robot.perform_task(**kwargs)
+
+    except InsufficientBatteryError as error:
+        logging.error(error)
+
+    else:
+        print(result)
+
+    finally:
+        print(f"{robot.name} has {robot.battery}% battery remaining.")
